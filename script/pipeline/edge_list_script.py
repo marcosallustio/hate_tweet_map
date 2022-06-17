@@ -32,7 +32,7 @@ def main():
     if source_field == "author_username":
         if target_field == "user_mentioned":
             df1= pandas.DataFrame(db.extract_all_tweets())
-            df1.to_csv('ok',index=False)
+            df1.to_csv('dict',index=False)
             query={}
             log.info("EXTRACT [MENTIONS]...")
             result = db.pipeline_mentions(query)
@@ -47,13 +47,13 @@ def main():
             db1=db.create_collection(name)
             data = df1.to_dict(orient="records")
             db1.insert_many(data)
-            ABSOLUTE_PATH = os.path.abspath("ok")
+            ABSOLUTE_PATH = os.path.abspath("dict")
             os.remove(ABSOLUTE_PATH)
 
     if source_field == "author_username":
         if target_field == "hashtag":
             df1 = pandas.DataFrame(db.extract_all_tweets())
-            df1.to_csv('ok', index=False)
+            df1.to_csv('dict', index=False)
             query = {}
             log.info("EXTRACT [MENTIONS]...")
             result = db.pipeline_hashtags(query)
@@ -68,7 +68,7 @@ def main():
             db1 = db.create_collection(name)
             data = df1.to_dict(orient="records")
             db1.insert_many(data)
-            ABSOLUTE_PATH=os.path.abspath("ok")
+            ABSOLUTE_PATH=os.path.abspath("dict")
             os.remove(ABSOLUTE_PATH)
 
     end = time.time()
