@@ -64,6 +64,7 @@ class UserSearch:
         self.__query = {'ids': users,
                         "user.fields": "id,name,username,location,entities,"
                                        "public_metrics"}
+        print(self.__query)
 
     def __connect_to_endpoint(self, retried=False) -> dict:
         """

@@ -256,12 +256,12 @@ class DataBase:
 
     def pipeline_mentions(self, query: dict) ->int:
 
-        up={"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","metrics":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.hashtags":"","twitter_entities.urls":""},"$rename":{"author_username":"source","twitter_entities.mentions":"target"}}
+        up={"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","metrics":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.hashtags":"","twitter_entities.urls":"","twitter_entities.annotation":""},"$rename":{"author_username":"source","twitter_entities.mentions":"target"}}
         return self.__collection.update_many(query,up).modified_count
 
     def pipeline_hashtags(self, query: dict) ->int:
 
-        up={"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.mentions":"","twitter_entities.urls":"","metrics":""},"$rename":{"author_username":"source","twitter_entities.hashtags":"target"}}
+        up={"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.mentions":"","twitter_entities.urls":"","metrics":"","twitter_entities.annotation":""},"$rename":{"author_username":"source","twitter_entities.hashtags":"target"}}
         return self.__collection.update_many(query,up,upsert=True).modified_count
 
     def get_users_id(self) -> List[int]:
