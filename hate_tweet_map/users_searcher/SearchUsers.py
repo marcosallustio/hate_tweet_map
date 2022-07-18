@@ -36,8 +36,7 @@ class UserSearch:
             self.mongodb_users = DataBase(path_to_cnfg_file, key="mongodb_users")
             self.mongodb_tweets = DataBase(path_to_cnfg_file, key="mongodb_tweets")
             self.__twitter_barer_token = cfg['twitter']['configuration']['barer_token']
-            self.__twitter_end_point = cfg['twitter']['configuration']['end_point']
-
+            #self.__twitter_end_point = cfg['twitter']['configuration']['end_point']
         self.__headers = {"Authorization": "Bearer {}".format(self.__twitter_barer_token)}
         self.__users_to_search = []
 
@@ -53,6 +52,7 @@ class UserSearch:
         self.log.info("LOADED {} USERS ID TO SEARCH".format(len(to_search)))
         self.__users_to_search = [str(id) for id in to_search]
 
+
     def __build_query(self, users: str) -> None:
         """
         This method build the query to send to the twitter api.
@@ -61,9 +61,7 @@ class UserSearch:
         :type users: str
         :return: None
         """
-        self.__query = {'ids': users,
-                        "user.fields": "id,name,username,location,entities,"
-                                       "public_metrics"}
+        self.__query = {"user.fields": "id,name,username,location,entities," "public_metrics"}
         print(self.__query)
 
     def __connect_to_endpoint(self, retried=False) -> dict:
@@ -80,7 +78,13 @@ class UserSearch:
         :return: dict that contains the response from twitter
         :rtype: dict
         """
-        response = requests.request("GET", self.__twitter_end_point, headers=self.__headers, params=self.__query)
+        to_search = self.mongodb_tweets.get_users_id()
+        saved = self.mongodb_users.get_users()
+        to_search = [usr for usr in to_search if usr not in saved]
+        for id in to_search:
+            self.__twitter_end_point = "https://api.twitter.com/2/users/" + id + "/following"
+            print(self.__twitter_end_point)
+            response = requests.request("GET", self.__twitter_end_point, headers=self.__headers, params=self.__query)
         if response.status_code == 200:
             self.log.info("RECEIVED VALID RESPONSE")
             json_response = response.json()
@@ -109,6 +113,7 @@ class UserSearch:
         else:
             self.log.critical("GET BAD RESPONSE FROM TWITTER: {}: {}".format(response.status_code, response.text))
             raise Exception(response.status_code, response.text)
+
 
     def __make(self) -> None:
         """
@@ -140,7 +145,7 @@ class UserSearch:
             self.log.info("NOTHING TO SEARCH")
             return
         if len(self.__users_to_search) > 100:
-            # in case of more request to send we disable the info log to print
+        # in case of more request to send we disable the info log to print
             # a bar that shows the progress.
             self.log.setLevel(logging.WARNING)
             # calculate hoy many requests must be send to Twitter
@@ -173,6 +178,7 @@ class UserSearch:
         self.log.info("SAVING USER INFO")
         with concurrent.futures.ThreadPoolExecutor() as executor:
             futures = []
+
             for user in (self.response['data']):
                 if not self.mongodb_users.is_in(user['id']):
                     self.__tot_user_saved += 1

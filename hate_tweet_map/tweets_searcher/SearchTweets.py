@@ -83,6 +83,7 @@ class SearchTweets:
                 else:
                     self.__twitter_hashtags = [twitter_hashtag]
 
+
             self.__twitter_lang = cfg['twitter']['search']['lang']
             self.__twitter_place_country = cfg['twitter']['search']["geo"]['place_country']
             self.__twitter_place = cfg['twitter']['search']["geo"]['place']
@@ -122,7 +123,6 @@ class SearchTweets:
             self.__twitter_context_annotations = cfg['twitter']['search']['context_annotations']
             self.__twitter_all_tweets = cfg['twitter']['search']['all_tweets']
             self.__twitter_n_results = cfg['twitter']['search']['n_results']
-            self.__twitter_filter_retweet = cfg['twitter']['search']['filter_retweet']
             self.__twitter_barer_token = cfg['twitter']['configuration']['barer_token']
             self.__twitter_end_point = cfg['twitter']['configuration']['end_point']
             self.__twitter_filter_images = cfg['twitter']['search']['filter_images']
@@ -157,9 +157,9 @@ class SearchTweets:
 
         if user is not None:
             if self.__twitter_keyword:
-                self.__query['query'] += " from: " + str(user) + " "
+                self.__query['query'] += " from: " + str(user)
             else:
-                self.__query['query'] += "from: " + str(user) + " "
+                self.__query['query'] += "from: " + str(user)
 
         if user_mentioned is not None:
             if self.__twitter_keyword:
@@ -210,8 +210,7 @@ class SearchTweets:
         elif self.__twitter_point_radius_longitude:
             self.__query['query'] += " point_radius:" + "[" + str(self.__twitter_point_radius_longitude) + " " + str(
                 self.__twitter_point_radius_latitude) + " " + self.__twitter_point_radius_radius + "]"
-        if self.__twitter_filter_retweet is True:
-            self.__query['query'] += " -is:retweet"
+
 
         self.__query['place.fields'] = "contained_within,country,country_code,full_name,geo,id,name,place_type"
         self.__query['expansions'] = 'author_id,geo.place_id,referenced_tweets.id,referenced_tweets.id.author_id'
@@ -294,10 +293,6 @@ class SearchTweets:
     @property
     def twitter_hashtag(self):
         return self.__twitter_hashtags
-
-    @property
-    def twitter_filter_retweet(self):
-        return self.__twitter_filter_retweet
 
     @property
     def twitter_filter_images(self):
@@ -444,6 +439,8 @@ class SearchTweets:
         bar3 = None
         bar4 = None
         bar5 = None
+        bar6 = None
+        bar7 = None
         no_user = True
         no_user_mentioned = True
         no_hashtag = True
@@ -476,6 +473,7 @@ class SearchTweets:
                 one_hashtag = True
             else:
                 multi_hashtag = True
+
 
         if multi_user:
             self.log.debug("MULTI-USERS SEARCH")
@@ -533,6 +531,8 @@ class SearchTweets:
             self.__make(bar5)
             bar5.close()
             bar4.update(1)
+
+
 
         if no_user and no_user_mentioned and no_hashtag:
             self.__build_query()

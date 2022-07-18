@@ -161,7 +161,8 @@ class ProcessTweet:
                         city = tweet.get("geo").get('city')
                         country = tweet.get("geo").get('country')
                     # find the coordinates
-                    id, check, result, tweet = self.__get_osm_coordinates(tweet=tweet, user_location=usr_location,city=city, country=country)
+                    id, check, result, tweet = self.__get_osm_coordinates(tweet=tweet, user_location=usr_location,
+                                                                          city=city, country=country)
                     # save the result
                     if id == 5:
                         if check:
@@ -260,7 +261,8 @@ class ProcessTweet:
 
         process_id, result, tweet = fut.result()
         # save the result in the right field in according to the process id returned
-        if process_id == 2:
+
+        if process_id == 2 or process_id == 3:
             for r in result:
                 for t in tweet:
                     if r["id"] == t["_id"]:
@@ -274,14 +276,19 @@ class ProcessTweet:
                             t['sentiment'] = {}
                             t['sentiment']['sent-it'] = {"subjectivity": r["subjectivity"],
                                                          "sentiment": r["polarity"]}
+                        t['processed_sentiment'] = True
                         self.mongo_db.update_one(t)
                         break
             return
         elif process_id == 4:
             tweet['spacy'] = result
-            tweet['processed'] = True
+            tweet['processed_spacy'] = True
+            if self.nlp and self.tag_me and (self.sent_it or self.feel_it):
+                tweet['processed'] = True
         elif process_id == 1:
             tweet['tags'] = result
+            tweet['processed_tagme'] = True
+
 
         # save the tweet on the db
         self.mongo_db.update_one(tweet)
@@ -454,7 +461,8 @@ class ProcessTweet:
 
         # for each token remained save the lemma, the pos information adn the morphology
         for token in filtered_sentence:
-            lemmas_with_postag.append(token.lemma_ + " POS : " + token.pos_ + " ; MORPH : " + token.morph.__str__().replace("|", "-"))
+            lemmas_with_postag.append(
+                token.lemma_ + " POS : " + token.pos_ + " ; MORPH : " + token.morph.__str__().replace("|", "-"))
 
         entities = []
         # retrieve the entities recognized from spacy

@@ -33,10 +33,10 @@ def main():
         if target_field == "user_mentioned":
             df1= pandas.DataFrame(db.extract_all_tweets())
             df1.to_csv('dict',index=False)
-            query={}
             log.info("EXTRACT [MENTIONS]...")
-            result = db.pipeline_mentions(query)
+            result = db.pipeline_mentions()
             log.info("UPDATE: {} TWEETS".format((result)))
+            query = {"source":{"$exists":"true"}}
             db.extract(query)
             df = pandas.DataFrame(db.extract(query))
             newdf = df.explode('target')
@@ -54,14 +54,14 @@ def main():
         if target_field == "hashtag":
             df1 = pandas.DataFrame(db.extract_all_tweets())
             df1.to_csv('dict', index=False)
-            query = {}
             log.info("EXTRACT [MENTIONS]...")
-            result = db.pipeline_hashtags(query)
+            result = db.pipeline_hashtags()
             log.info("UPDATE: {} TWEETS".format((result)))
+            query = {"source":{"$exists":"true"}}
             db.extract(query)
             df = pandas.DataFrame(db.extract(query))
             newdf= df.explode('target')
-            newdf.to_csv('data.csv', index=False)
+            newdf.to_csv('data1.csv', index=False)
             log.info("TWEETS SAVED ON: {}".format(os.path.abspath('../../data.csv')))
             db.delete_collection()
             name = cfg['mongodb']['collection']
@@ -70,6 +70,30 @@ def main():
             db1.insert_many(data)
             ABSOLUTE_PATH=os.path.abspath("dict")
             os.remove(ABSOLUTE_PATH)
+
+    if source_field == "author_username":
+        if target_field == "retweet":
+            df1 = pandas.DataFrame(db.extract_all_tweets())
+            df1.to_csv('dict', index=False)
+            log.info("EXTRACT [RETWEET]...")
+            db.pipeline_retweets1()
+            result=db.pipeline_retweets()
+            log.info("UPDATE: {} TWEETS".format((result)))
+            query = {"source":{"$exists":"true"}}
+            db.extract(query)
+            df = pandas.DataFrame(db.extract(query))
+            newdf = df.explode('target')
+            newdf.to_csv('data2.csv', index=False)
+            log.info("TWEETS SAVED ON: {}".format(os.path.abspath('../../data.csv')))
+            db.delete_collection()
+            name = cfg['mongodb']['collection']
+            db1 = db.create_collection(name)
+            data = df1.to_dict(orient="records")
+            db1.insert_many(data)
+            ABSOLUTE_PATH = os.path.abspath("dict")
+            os.remove(ABSOLUTE_PATH)
+
+
 
     end = time.time()
     log.info("DONE IN: {}".format(end - start))

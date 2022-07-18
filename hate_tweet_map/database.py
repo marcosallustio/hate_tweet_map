@@ -30,6 +30,7 @@ class DataBase:
         for tweet in self.__collection.find(query):
             return tweet
 
+
     def extract(self, query: dict) -> List[dict]:
         """
         Extract the tweets that match the query from the collection.
@@ -254,15 +255,28 @@ class DataBase:
     def delete_collection(self):
         return self.__collection.drop()
 
-    def pipeline_mentions(self, query: dict) ->int:
+    def pipeline_mentions(self) ->int:
 
-        up={"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","metrics":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.hashtags":"","twitter_entities.urls":"","twitter_entities.annotation":""},"$rename":{"author_username":"source","twitter_entities.mentions":"target"}}
+        query = {"twitter_entities.mentions":{"$exists":"true"}}
+        up={"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","metrics":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.hashtags":"","twitter_entities.urls":"","twitter_entities.annotation":"","twitter_entities.retweet":""},"$rename":{"author_username":"source","twitter_entities.mentions":"target"}}
         return self.__collection.update_many(query,up).modified_count
 
-    def pipeline_hashtags(self, query: dict) ->int:
+    def pipeline_hashtags(self) ->int:
 
-        up={"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.mentions":"","twitter_entities.urls":"","metrics":"","twitter_entities.annotation":""},"$rename":{"author_username":"source","twitter_entities.hashtags":"target"}}
-        return self.__collection.update_many(query,up,upsert=True).modified_count
+        query = {"twitter_entities.hashtags":{"$exists":"true"}}
+        up={"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.mentions":"","twitter_entities.urls":"","metrics":"","twitter_entities.annotation":"","twitter_entities.retweet":""},"$rename":{"author_username":"source","twitter_entities.hashtags":"target"}}
+        return self.__collection.update_many(query,up).modified_count
+
+    def pipeline_retweets(self)->int:
+
+        query= {"source":{"$exists":"true"}}
+        up = {"$unset":{"created_at": "","raw_text":"","author_id":"","author_name":"","lang":"","possibly_sensitive":"","geo":"","processed":"","complete_text":"","referenced_tweets":"","twitter_entities.hashtags":"","twitter_entities.urls":"","metrics":"","twitter_entities.annotation":"","twitter_entities.retweet":""},  "$push": {"target": {"$each": [ 1 ],"$slice":1}}}
+        return self.__collection.update_many(query,up).modified_count
+
+    def pipeline_retweets1(self):
+        query = {"referenced_tweets.0.type":"retweeted"}
+        up= {"$rename":{"author_username":"source","twitter_entities.mentions":"target"}}
+        return self.__collection.update_many(query,up)
 
     def get_users_id(self) -> List[int]:
         """
@@ -318,7 +332,19 @@ class DataBase:
     def create_collection(self, name: str):
         return self.__db.create_collection(name)
 
+    def prova(self):
+        return self.__collection.insert_one({"_id" : 1, "scores" : [ 40, 50, 60 ]})
 
+    def prova1(self):
+        return self.__collection.update({ "_id": 1 },
+   {
+     "$push": {
+       "scores": {
+         "$each": [ 80, 78, 86 ],
+         "$slice":1
+       }
+     }
+   })
 
 
 

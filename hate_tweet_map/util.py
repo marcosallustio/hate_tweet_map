@@ -1,3 +1,4 @@
+
 def pre_process_tweets_response(tweet: dict, includes: dict) -> dict:
     """
     This method take an input a dict representing a tweet (in the Twitter original format) and create a dict containing the usefull information of the tweet reorganized usign different criteria and if necessary renaming the fields.
@@ -72,7 +73,7 @@ def pre_process_tweets_response(tweet: dict, includes: dict) -> dict:
                         post['complete_text'] = True
                         __extract_context_annotation(post, p)
                         __extract_entities(ent, p)
-                        __extract_mentions(ent, p)
+                        __extract_mentions1(ent, p)
                         break
         post["referenced_tweets"] = ref_tweets
     if not retweeted:
@@ -80,6 +81,7 @@ def pre_process_tweets_response(tweet: dict, includes: dict) -> dict:
         __extract_context_annotation(post, tweet)
 
     __extract_mentions(ent, tweet)
+
     post['twitter_entities'] = ent
     geo = {}
     if 'geo' in tweet:
@@ -133,13 +135,21 @@ def __extract_mentions(ent, tweet):
             mentions = []
             for mention in tweet['entities']['mentions']:
                 mentions.append(mention['username'])
+            ent['mentions'] = mentions
+
+def __extract_mentions1(ent, tweet):
+    if 'entities' in tweet:
+        if 'mentions' in tweet['entities']:
+            mentions = []
+            for mention in tweet['entities']['mentions']:
+                mentions.append(mention['username'])
             if 'mentions' in ent:
-                ent['mentions'] += mentions
+                ent['retweet'] += mentions
             else:
-                ent['mentions'] = mentions
+                ent['retweet'] = mentions
 
 
-def pre_process_user_response(usr: dict) -> dict:
+def pre_process_user_response(usr: dict, id: str) -> dict:
     """
     This method take an input a dict representing an user (in the Twitter original format) and create a dict containing the usefull information of the user reorganized usign different criteria and if necessary renaming the fields.
 
@@ -167,7 +177,7 @@ def pre_process_user_response(usr: dict) -> dict:
     :rtype: dict
 
     """
-
+    author_id = id
     user = {'_id': usr["id"], "name": usr["name"], "username": usr["username"], "public_metrics": usr["public_metrics"],
-            "location": usr.get("location", None)}
+            "location": usr.get("location", None),"author_id": author_id}
     return user
